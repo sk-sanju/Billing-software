@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import APILog, APIToken
 
-# Register your models here.
+admin.site.register(APILog)
+admin.site.register(APIToken)

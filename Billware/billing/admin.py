@@ -1,3 +1,7 @@
 from django.contrib import admin
+from .models import Tax, Discount, InvoiceDetail, InvoiceProduct
 
-# Register your models here.
+admin.site.register(Tax)
+admin.site.register(Discount)
+admin.site.register(InvoiceDetail)
+admin.site.register(InvoiceProduct)

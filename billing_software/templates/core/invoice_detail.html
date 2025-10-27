@@ -1,0 +1,38 @@
+{% extends 'core/base.html' %}
+{% block title %}Invoice Details{% endblock %}
+{% block content %}
+<h4>Invoice #{{ invoice.invoice_number }}</h4>
+<p><strong>Customer:</strong> {{ invoice.customer.name }}<br>
+<strong>Date:</strong> {{ invoice.date|date:"Y-m-d" }}<br>
+<strong>Total:</strong> ₹{{ invoice.total_amount }}<br>
+<strong>Status:</strong> {% if invoice.paid %}<span class="badge bg-success">Paid</span>{% else %}<span class="badge bg-danger">Unpaid</span>{% endif %}</p>
+
+<h5>Items</h5>
+<table class="table table-bordered">
+  <thead class="table-dark"><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+  <tbody>
+  {% for i in items %}
+    <tr><td>{{ i.product.name }}</td><td>{{ i.quantity }}</td><td>₹{{ i.unit_price }}</td><td>₹{{ i.total }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h5 class="mt-4">Payments</h5>
+<table class="table table-sm table-striped">
+  <thead class="table-dark"><tr><th>Amount</th><th>Method</th><th>Date</th></tr></thead>
+  <tbody>
+  {% for p in payments %}
+    <tr><td>₹{{ p.amount_paid }}</td><td>{{ p.payment_method }}</td><td>{{ p.payment_date|date:"Y-m-d" }}</td></tr>
+  {% empty %}
+    <tr><td colspan="3" class="text-center text-muted">No payments yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<div class="mt-3">
+  <p><strong>Total Paid:</strong> ₹{{ total_paid }}<br><strong>Balance:</strong> ₹{{ balance }}</p>
+  <a href="{% url 'payment_add' invoice.id %}" class="btn btn-primary">Add Payment</a>
+  <a href="{% url 'download_invoice_pdf' invoice.id %}" class="btn btn-danger">Download PDF</a>
+  <a href="{% url 'invoice_list' %}" class="btn btn-primary">Back</a>
+</div>
+{% endblock %}

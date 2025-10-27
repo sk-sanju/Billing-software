@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h3 class="mb-4">Dashboard Overview</h3>
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="card text-center bg-primary text-white p-3">
+      <h4>{{ total_customers }}</h4><p>Customers</p>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center bg-success text-white p-3">
+      <h4>{{ total_products }}</h4><p>Products</p>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center bg-warning text-white p-3">
+      <h4>{{ total_invoices }}</h4><p>Invoices</p>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center bg-danger text-white p-3">
+      <h4>₹{{ total_revenue }}</h4><p>Total Revenue</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

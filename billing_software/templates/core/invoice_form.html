@@ -1,0 +1,14 @@
+{% extends 'core/base.html' %}
+{% block title %}Create Invoice{% endblock %}
+{% block content %}
+<h4>Create Invoice</h4>
+<form method="post">{% csrf_token %}
+  <div class="card p-3 mb-3">{{ invoice_form.as_p }}</div>
+  <h5>Invoice Items</h5>
+  {{ formset.management_form }}
+  {% for form in formset %}
+    <div class="border p-3 mb-2 rounded bg-light">{{ form.as_p }}</div>
+  {% endfor %}
+  <button class="btn btn-success">Save Invoice</button>
+</form>
+{% endblock %}

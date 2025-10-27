@@ -1,0 +1,25 @@
+{% extends 'core/home.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h3>Products</h3>
+  <a href="{% url 'product_add' %}" class="btn btn-primary mb-3">Add Product</a>
+  <table class="table table-striped">
+    <thead><tr><th>Name</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for p in products %}
+      <tr>
+        <td>{{ p.name }}</td>
+        <td>₹{{ p.price }}</td>
+        <td>{{ p.stock }}</td>
+        <td>
+          <a href="{% url 'product_edit' p.pk %}" class="btn btn-sm btn-warning">Edit</a>
+          <a href="{% url 'product_delete' p.pk %}" class="btn btn-sm btn-danger">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No products yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

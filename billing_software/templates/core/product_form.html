@@ -1,0 +1,12 @@
+{% extends 'core/home.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h3>{{ form.instance.pk|yesno:"Edit Product,Add Product" }}</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Save</button>
+    <a href="{% url 'product_list' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

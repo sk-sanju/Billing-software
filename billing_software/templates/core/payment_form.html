@@ -1,0 +1,10 @@
+{% extends 'core/base.html' %}
+{% block title %}Add Payment{% endblock %}
+{% block content %}
+<h4>Add Payment - Invoice #{{ invoice.invoice_number }}</h4>
+<form method="post">{% csrf_token %}
+  {{ form.as_p }}
+  <button class="btn btn-success">Submit</button>
+  <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

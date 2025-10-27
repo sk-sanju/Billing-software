@@ -1,0 +1,26 @@
+{% extends 'core/base.html' %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4>Customers</h4>
+  <a href="{% url 'customer_add' %}" class="btn btn-primary">+ Add Customer</a>
+</div>
+<table class="table table-striped">
+  <thead class="table-dark">
+    <tr><th>Name</th><th>Email</th><th>Phone</th><th>Actions</th></tr>
+  </thead>
+  <tbody>
+  {% for c in customers %}
+    <tr>
+      <td>{{ c.name }}</td><td>{{ c.email }}</td><td>{{ c.phone }}</td>
+      <td>
+        <a href="{% url 'customer_edit' c.id %}" class="btn btn-sm btn-warning">Edit</a>
+        <a href="{% url 'customer_delete' c.id %}" class="btn btn-sm btn-danger">Delete</a>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="4" class="text-center text-muted">No customers found.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

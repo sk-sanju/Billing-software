@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background: #f4f4f4; }
+        .footer { text-align: right; font-weight: bold; }
+        .total { background: #e6f7ff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Invoice - {{ invoice.invoice_number }}</h2>
+        <p><strong>Date:</strong> {{ invoice.date|date:"Y-m-d" }}</p>
+    </div>
+
+    <h4>Customer Information</h4>
+    <p>
+        <strong>{{ invoice.customer.name }}</strong><br>
+        {{ invoice.customer.email }}<br>
+        {{ invoice.customer.phone }}<br>
+        {{ invoice.customer.address }}
+    </p>
+
+    <h4>Invoice Items</h4>
+    <table>
+        <thead>
+            <tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr>
+        </thead>
+        <tbody>
+        {% for item in items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ item.unit_price }}</td>
+                <td>₹{{ item.total }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="total"><td colspan="3">Total</td><td>₹{{ invoice.total_amount }}</td></tr>
+        </tfoot>
+    </table>
+
+    <h4>Payment Summary</h4>
+    <table>
+        <thead>
+            <tr><th>Date</th><th>Method</th><th>Amount</th></tr>
+        </thead>
+        <tbody>
+        {% for payment in payments %}
+            <tr><td>{{ payment.payment_date|date:"Y-m-d" }}</td><td>{{ payment.payment_method }}</td><td>₹{{ payment.amount_paid }}</td></tr>
+        {% empty %}
+            <tr><td colspan="3" class="text-muted">No payments recorded</td></tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr><td colspan="2" class="text-end"><strong>Total Paid</strong></td><td>₹{{ total_paid }}</td></tr>
+            <tr><td colspan="2" class="text-end"><strong>Balance</strong></td><td>₹{{ balance }}</td></tr>
+        </tfoot>
+    </table>
+
+    <p class="footer">Thank you for your business!</p>
+</body>
+</html>

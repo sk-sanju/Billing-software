@@ -1,0 +1,96 @@
+{% extends 'core/base.html' %}
+{% block title %}Inventory Registry | BillingPro{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">Inventory Registry</h3>
+        <p class="text-muted mb-0">Monitor stock levels, set selling prices, and track product items.</p>
+    </div>
+    <a href="{% url 'product_add' %}" class="btn btn-primary shadow-sm"><i class="fa-solid fa-plus me-1"></i> Add Product</a>
+</div>
+
+<div class="card p-3 mb-4 shadow-sm">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-9">
+            <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="Search by product name or description..." value="{{ query }}">
+            </div>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+            {% if query %}
+                <a href="{% url 'product_list' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-xmark"></i></a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Description</th>
+                    <th class="text-end">Selling Price</th>
+                    <th class="text-center">Stock Count</th>
+                    <th class="text-center">Stock Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                    <tr>
+                        <td>
+                            <strong class="text-dark">{{ p.name }}</strong>
+                        </td>
+                        <td>
+                            <span class="text-muted small">{{ p.description|default:"No description provided" }}</span>
+                        </td>
+                        <td class="text-end fw-semibold">₹{{ p.price|floatformat:2 }}</td>
+                        <td class="text-center">
+                            <span class="fw-bold">{{ p.stock }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if p.stock == 0 %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger px-3">Out of Stock</span>
+                            {% elif p.stock < 10 %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning px-3">Low Stock</span>
+                            {% else %}
+                                <span class="badge bg-success bg-opacity-10 text-success px-3">In Stock</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
+                                    <i class="fa-solid fa-ellipsis-vertical fa-lg"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                    <li><a class="dropdown-menu-item dropdown-item" href="{% url 'product_edit' p.id %}"><i class="fa-solid fa-pen-to-square text-warning me-2"></i> Edit Product</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form action="{% url 'product_delete' p.id %}" method="post" onsubmit="return confirm('Are you sure you want to remove this product from the inventory ledger?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-trash-can me-2"></i> Delete Product</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-boxes-packing fa-3x mb-3 text-muted"></i>
+                            <h6 class="fw-bold">No Products Found</h6>
+                            <p class="small mb-0">Try expanding your search query or add a new product item.</p>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

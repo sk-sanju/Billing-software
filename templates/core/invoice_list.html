@@ -1,0 +1,110 @@
+{% extends 'core/base.html' %}
+{% block title %}Invoice Ledger | BillingPro{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">Invoice Ledger</h3>
+        <p class="text-muted mb-0">Search historical invoices, track client accounts, and process payments.</p>
+    </div>
+    <a href="{% url 'invoice_add' %}" class="btn btn-primary shadow-sm"><i class="fa-solid fa-plus me-1"></i> Create Invoice</a>
+</div>
+
+<!-- Search & Filters -->
+<div class="card p-3 mb-4 shadow-sm">
+    <form method="get" class="row g-3 align-items-center">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="Search by invoice number or customer name..." value="{{ query }}">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>-- All Statuses --</option>
+                <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Fully Paid</option>
+                <option value="unpaid" {% if status_filter == 'unpaid' %}selected{% endif %}>Unpaid / Partial</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+            {% if query or status_filter != 'all' %}
+                <a href="{% url 'invoice_list' %}" class="btn btn-outline-secondary"><i class="fa-solid fa-xmark"></i></a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Invoice Table -->
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Customer</th>
+                    <th>Billing Date</th>
+                    <th class="text-end">Grand Total</th>
+                    <th class="text-end">Paid Amount</th>
+                    <th class="text-end">Remaining Balance</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in invoices %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'invoice_detail' inv.id %}" class="fw-bold text-decoration-none">{{ inv.invoice_number }}</a>
+                        </td>
+                        <td>
+                            <a href="{% url 'customer_detail' inv.customer.id %}" class="text-decoration-none text-dark fw-semibold">{{ inv.customer.name }}</a>
+                        </td>
+                        <td>{{ inv.date|date:"Y-m-d H:i" }}</td>
+                        <td class="text-end fw-semibold">₹{{ inv.total_amount|floatformat:2 }}</td>
+                        <td class="text-end text-success fw-semibold">₹{{ inv.paid_amount|floatformat:2 }}</td>
+                        <td class="text-end text-danger fw-semibold">₹{{ inv.balance_amount|floatformat:2 }}</td>
+                        <td class="text-center">
+                            {% if inv.paid %}
+                                <span class="badge bg-paid">Paid</span>
+                            {% elif inv.paid_amount > 0 %}
+                                <span class="badge bg-partial">Partial</span>
+                            {% else %}
+                                <span class="badge bg-unpaid">Unpaid</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
+                                    <i class="fa-solid fa-ellipsis-vertical fa-lg"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                    <li><a class="dropdown-menu-item dropdown-item" href="{% url 'invoice_detail' inv.id %}"><i class="fa-solid fa-eye text-primary me-2"></i> View Details</a></li>
+                                    <li><a class="dropdown-menu-item dropdown-item" href="{% url 'download_invoice_pdf' inv.id %}"><i class="fa-solid fa-file-pdf text-danger me-2"></i> Download PDF</a></li>
+                                    {% if inv.balance_amount > 0 %}
+                                        <li><a class="dropdown-menu-item dropdown-item" href="{% url 'payment_add' inv.id %}"><i class="fa-solid fa-cash-register text-success me-2"></i> Add Payment</a></li>
+                                    {% endif %}
+                                    <li>
+                                        <form method="post" action="{% url 'invoice_delete' inv.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Delete invoice {{ inv.invoice_number }}?');"><i class="fa-solid fa-trash-can me-2"></i> Delete Invoice</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-file-invoice-dollar fa-3x mb-3 text-muted"></i>
+                            <h6 class="fw-bold">No Invoices Found</h6>
+                            <p class="small mb-0">Try adjusting your filters or create a new invoice.</p>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

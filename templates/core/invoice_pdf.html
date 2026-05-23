@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice - {{ invoice.invoice_number }}</title>
+    <style>
+        @page {
+            size: a4;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #1e293b;
+            font-size: 9.5pt;
+            line-height: 1.4;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td, th {
+            vertical-align: top;
+        }
+        .invoice-header-table {
+            margin-bottom: 30px;
+        }
+        .invoice-title {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #6366f1;
+            line-height: 1;
+        }
+        .company-details {
+            text-align: right;
+            color: #64748b;
+            font-size: 9pt;
+        }
+        .meta-billing-table {
+            margin-bottom: 30px;
+        }
+        .billing-title {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .meta-info-box {
+            color: #334155;
+            font-size: 9pt;
+        }
+        .items-table {
+            margin-bottom: 30px;
+        }
+        .items-table th {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 8pt;
+            letter-spacing: 0.05em;
+            padding: 10px;
+            border-bottom: 2px solid #cbd5e1;
+            text-align: left;
+        }
+        .items-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .totals-table {
+            width: 45%;
+            margin-left: auto;
+            margin-bottom: 30px;
+        }
+        .totals-table td {
+            padding: 6px 10px;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .totals-table .grand-total td {
+            border-top: 1px solid #94a3b8;
+            border-bottom: 2px double #94a3b8;
+            font-size: 11pt;
+            font-weight: bold;
+            color: #6366f1;
+        }
+        .totals-table .balance-due td {
+            background-color: #fef2f2;
+            color: #991b1b;
+            font-weight: bold;
+            border-bottom: 1px solid #fee2e2;
+        }
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 8pt;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Panel -->
+    <table class="invoice-header-table">
+        <tr>
+            <td>
+                <div class="invoice-title">INVOICE</div>
+                <div style="font-size: 10pt; color: #475569; margin-top: 5px;">#{{ invoice.invoice_number }}</div>
+            </td>
+            <td class="company-details">
+                <strong>BillingPro Systems Ltd.</strong><br>
+                123 Business Boulevard, Indiranagar<br>
+                Bengaluru, Karnataka - 560038<br>
+                GSTIN: 29ABCDE1234F1ZH
+            </td>
+        </tr>
+    </table>
+
+    <!-- Billing Info Panel -->
+    <table class="meta-billing-table">
+        <tr>
+            <td style="width: 50%; padding-right: 20px;">
+                <div class="billing-title">Customer Details</div>
+                <div class="meta-info-box">
+                    <strong>{{ invoice.customer.name }}</strong><br>
+                    Email: {{ invoice.customer.email }}<br>
+                    Phone: {{ invoice.customer.phone|default:"N/A" }}<br>
+                    Address: {{ invoice.customer.address|default:"N/A" }}
+                </div>
+            </td>
+            <td style="width: 50%; padding-left: 20px;">
+                <div class="billing-title">Invoice Details</div>
+                <div class="meta-info-box">
+                    <table>
+                        <tr>
+                            <td style="padding-bottom: 5px; color: #64748b;">Invoice Date:</td>
+                            <td style="padding-bottom: 5px; font-weight: bold;">{{ invoice.date|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-bottom: 5px; color: #64748b;">Due Date:</td>
+                            <td style="padding-bottom: 5px; font-weight: bold; color: #ef4444;">{% if invoice.due_date %}{{ invoice.due_date|date:"Y-m-d" }}{% else %}N/A{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #64748b;">Payment Status:</td>
+                            <td>
+                                <strong>
+                                    {% if invoice.paid %}
+                                        FULLY SETTLED
+                                    {% elif total_paid > 0 %}
+                                        PARTIALLY SETTLED
+                                    {% else %}
+                                        UNSETTLED
+                                    {% endif %}
+                                </strong>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Line Items Table -->
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th style="width: 50%;">Product Details</th>
+                <th style="width: 15%; text-align: center;">Quantity</th>
+                <th style="width: 15%; text-align: right;">Unit Price</th>
+                <th style="width: 20%; text-align: right;">Total Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+                <tr>
+                    <td>
+                        <strong>{{ item.product.name }}</strong>
+                        {% if item.product.description %}
+                            <div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">{{ item.product.description }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right">₹{{ item.unit_price|floatformat:2 }}</td>
+                    <td class="text-right fw-semibold">₹{{ item.total|floatformat:2 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Financial Summary Calculations Panel -->
+    <table class="totals-table">
+        <tr>
+            <td style="color: #64748b;">Subtotal:</td>
+            <td class="text-right">₹{{ invoice.subtotal|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td style="color: #64748b;">GST ({{ invoice.tax_rate|floatformat:0 }}%):</td>
+            <td class="text-right text-danger">₹{{ invoice.tax_amount|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td style="color: #64748b;">Discount Applied:</td>
+            <td class="text-right text-success">-₹{{ invoice.discount_amount|floatformat:2 }}</td>
+        </tr>
+        <tr class="grand-total">
+            <td>Grand Total:</td>
+            <td class="text-right">₹{{ invoice.total_amount|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td style="color: #64748b;">Amount Settled:</td>
+            <td class="text-right text-success">₹{{ total_paid|floatformat:2 }}</td>
+        </tr>
+        <tr class="balance-due">
+            <td>Balance Due:</td>
+            <td class="text-right">₹{{ balance|floatformat:2 }}</td>
+        </tr>
+    </table>
+
+    <!-- Footer Panel -->
+    <div class="footer">
+        <p style="font-weight: bold; margin-bottom: 5px;">Thank you for your business!</p>
+        <p>This is a computer-generated invoice receipt. No signature is required.</p>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,130 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ customer.name }} Details | BillingPro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">Customer Dossier</h3>
+        <p class="text-muted mb-0">Customer ledger history and total outstanding balances.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'customer_list' %}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-arrow-left"></i> Back to Directory</a>
+        <a href="{% url 'customer_edit' customer.id %}" class="btn btn-warning btn-sm"><i class="fa-solid fa-pen-to-square"></i> Edit Profile</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Profile Card & Summary stats -->
+    <div class="col-lg-4">
+        <div class="card p-4 mb-4">
+            <div class="text-center pb-4 mb-4 border-bottom">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <i class="fa-solid fa-user fa-3x"></i>
+                </div>
+                <h5 class="fw-bold mb-1">{{ customer.name }}</h5>
+                <span class="text-muted small">Customer ID: #{{ customer.id }}</span>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold text-secondary mb-3">Contact Details</h6>
+                <div class="d-flex align-items-start gap-2 mb-2">
+                    <i class="fa-solid fa-envelope text-muted mt-1" style="width: 20px;"></i>
+                    <div>
+                        <span class="text-muted small block">Email Address</span>
+                        <div class="fw-semibold">{{ customer.email }}</div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-start gap-2 mb-2">
+                    <i class="fa-solid fa-phone text-muted mt-1" style="width: 20px;"></i>
+                    <div>
+                        <span class="text-muted small block">Phone Number</span>
+                        <div class="fw-semibold">{{ customer.phone|default:"N/A" }}</div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-start gap-2 mb-2">
+                    <i class="fa-solid fa-location-dot text-muted mt-1" style="width: 20px;"></i>
+                    <div>
+                        <span class="text-muted small block">Billing Address</span>
+                        <div class="fw-semibold">{{ customer.address|default:"N/A" }}</div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-start gap-2">
+                    <i class="fa-solid fa-calendar text-muted mt-1" style="width: 20px;"></i>
+                    <div>
+                        <span class="text-muted small block">Joined On</span>
+                        <div class="fw-semibold">{{ customer.created_at|date:"Y-m-d" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ledger Financial Summary -->
+        <div class="card p-4 bg-light border-0 shadow-sm">
+            <h6 class="fw-bold text-secondary mb-3">Ledger Account Balances</h6>
+            <div class="d-flex justify-content-between py-2 border-bottom border-dashed border-secondary border-opacity-10">
+                <span class="text-muted">Total Invoiced:</span>
+                <strong class="text-dark">₹{{ total_invoiced|floatformat:2 }}</strong>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom border-dashed border-secondary border-opacity-10">
+                <span class="text-muted">Total Paid Cash:</span>
+                <strong class="text-success">₹{{ total_paid|floatformat:2 }}</strong>
+            </div>
+            <div class="d-flex justify-content-between py-3 text-danger fs-5 bg-danger bg-opacity-10 p-3 rounded mt-3">
+                <span class="fw-bold">Total Due:</span>
+                <strong class="fw-bold">₹{{ balance|floatformat:2 }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Ledger Invoice List -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-receipt me-2"></i>Invoice History Ledger</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Date</th>
+                            <th class="text-end">Billed Amount</th>
+                            <th class="text-end">Balance Due</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in invoices %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'invoice_detail' inv.id %}" class="fw-bold text-decoration-none">{{ inv.invoice_number }}</a>
+                                </td>
+                                <td>{{ inv.date|date:"Y-m-d" }}</td>
+                                <td class="text-end fw-semibold">₹{{ inv.total_amount|floatformat:2 }}</td>
+                                <td class="text-end text-danger fw-semibold">₹{{ inv.balance_amount|floatformat:2 }}</td>
+                                <td>
+                                    {% if inv.paid %}
+                                        <span class="badge bg-paid">Paid</span>
+                                    {% elif inv.paid_amount > 0 %}
+                                        <span class="badge bg-partial">Partial</span>
+                                    {% else %}
+                                        <span class="badge bg-unpaid">Unpaid</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-file-excel fa-3x mb-3 text-muted"></i>
+                                    <h6 class="fw-bold">No Invoices on File</h6>
+                                    <p class="small mb-0">This customer has not placed any orders yet.</p>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

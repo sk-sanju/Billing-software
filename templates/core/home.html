@@ -1,0 +1,266 @@
+{% extends 'core/base.html' %}
+{% block title %}Dashboard Overview | BillingPro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">Dashboard Overview</h3>
+        <p class="text-muted mb-0">Real-time business insights and inventory alerts.</p>
+    </div>
+    <div>
+        <a href="{% url 'invoice_add' %}" class="btn btn-primary shadow-sm"><i class="fa-solid fa-plus me-1"></i> New Invoice</a>
+    </div>
+</div>
+
+<!-- Metrics Cards Row -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="card h-100 p-3 border-start border-4 border-success">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted text-uppercase fw-semibold small">Total Revenue</span>
+                    <h3 class="fw-bold mt-1 mb-0">₹{{ total_revenue|floatformat:2 }}</h3>
+                </div>
+                <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                    <i class="fa-solid fa-indian-rupee-sign fa-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100 p-3 border-start border-4 border-primary">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted text-uppercase fw-semibold small">Invoices Raised</span>
+                    <h3 class="fw-bold mt-1 mb-0">{{ total_invoices }}</h3>
+                </div>
+                <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                    <i class="fa-solid fa-receipt fa-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100 p-3 border-start border-4 border-indigo" style="border-left-color: #6366f1 !important;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted text-uppercase fw-semibold small">Total Customers</span>
+                    <h3 class="fw-bold mt-1 mb-0">{{ total_customers }}</h3>
+                </div>
+                <div class="bg-opacity-10 p-3 rounded-circle text-indigo" style="background-color: rgba(99, 102, 241, 0.1); color: #6366f1;">
+                    <i class="fa-solid fa-users fa-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100 p-3 border-start border-4 {% if out_of_stock_count > 0 %}border-danger{% else %}border-warning{% endif %}">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted text-uppercase fw-semibold small">Stock Status</span>
+                    <h3 class="fw-bold mt-1 mb-0">{{ out_of_stock_count }} <span class="fs-6 fw-normal text-muted">Out of Stock</span></h3>
+                </div>
+                <div class="{% if out_of_stock_count > 0 %}bg-danger bg-opacity-10 text-danger{% else %}bg-warning bg-opacity-10 text-warning{% endif %} p-3 rounded-circle">
+                    <i class="fa-solid fa-triangle-exclamation fa-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Chart Column -->
+    <div class="col-lg-8">
+        <div class="card p-4 h-100">
+            <div class="card-header border-0 p-0 mb-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Sales (Revenue) Trend</h5>
+                <span class="badge bg-secondary">Last 30 Days</span>
+            </div>
+            <div style="position: relative; height: 320px; width: 100%;">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Alert Panel -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fa-solid fa-circle-exclamation text-warning me-2"></i> Low Stock Alerts
+            </div>
+            <div class="card-body p-0">
+                {% if low_stock_products %}
+                    <ul class="list-group list-group-flush">
+                        {% for p in low_stock_products %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                                <div>
+                                    <h6 class="mb-0 fw-semibold">{{ p.name }}</h6>
+                                    <small class="text-muted">₹{{ p.price }}/unit</small>
+                                </div>
+                                <span class="badge bg-opacity-10 text-danger px-3" style="background-color: rgba(239, 68, 68, 0.1);">
+                                    {{ p.stock }} left
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="p-3 text-center border-top">
+                        <a href="{% url 'product_list' %}" class="small text-decoration-none fw-bold text-primary">Manage Inventory <i class="fa-solid fa-angle-right"></i></a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fa-solid fa-circle-check text-success fa-3x mb-3"></i>
+                        <h6 class="fw-bold">All Products Stocked</h6>
+                        <p class="text-muted small px-3">Inventory is healthy! There are no products running low on stock.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Invoices -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="fa-solid fa-file-invoice me-2"></i> Recent Invoices</span>
+                <a href="{% url 'invoice_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in recent_invoices %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'invoice_detail' inv.id %}" class="text-decoration-none fw-semibold">{{ inv.invoice_number }}</a>
+                                </td>
+                                <td>{{ inv.customer.name }}</td>
+                                <td>₹{{ inv.total_amount }}</td>
+                                <td>
+                                    {% if inv.paid %}
+                                        <span class="badge bg-paid">Paid</span>
+                                    {% else %}
+                                        <span class="badge bg-unpaid">Unpaid</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">No invoices created yet.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payments -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header">
+                <span class="fw-bold"><i class="fa-solid fa-hand-holding-dollar me-2"></i> Recent Payments</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Invoice</th>
+                                <th>Method</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in recent_payments %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'invoice_detail' p.invoice.id %}" class="text-decoration-none fw-semibold">#{{ p.invoice.invoice_number }}</a>
+                                        <div class="small text-muted" style="font-size: 0.75rem;">{{ p.payment_date|date:"Y-m-d" }}</div>
+                                    </td>
+                                    <td class="text-uppercase small">{{ p.payment_method }}</td>
+                                    <td class="text-success fw-semibold">+₹{{ p.amount_paid }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-4">No payments recorded yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const labels = JSON.parse('{{ sales_labels|safe }}');
+        const data = JSON.parse('{{ sales_data|safe }}');
+
+        if (labels.length === 0) {
+            labels.push("No Sales Data");
+            data.push(0);
+        }
+
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const primaryColor = '#6366f1';
+        
+        // Gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.3)');
+        gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Sales Revenue (₹)',
+                    data: data,
+                    borderColor: primaryColor,
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointBackgroundColor: primaryColor,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: 'Outfit', size: 11 } }
+                    },
+                    y: {
+                        grid: { color: '#f1f5f9' },
+                        ticks: { 
+                            font: { family: 'Outfit', size: 11 },
+                            callback: function(value) { return '₹' + value; }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'core/base.html' %}
+{% block title %}Record Payment | BillingPro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm p-4">
+            <h4 class="fw-bold mb-1 text-secondary">
+                <i class="fa-solid fa-cash-register text-success me-2"></i> Record Payment
+            </h4>
+            <p class="text-muted small mb-4">Invoice #{{ invoice.invoice_number }} &mdash; Total: ₹{{ invoice.total_amount }}</p>
+
+            <div class="bg-light p-3 rounded border mb-4">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Customer:</span>
+                    <strong class="text-dark">{{ invoice.customer.name }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-muted">Balance Due:</span>
+                    <strong class="text-danger fs-5">₹{{ balance|floatformat:2 }}</strong>
+                </div>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label fw-semibold small">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-text small">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="text-danger small mt-1"><i class="fa-solid fa-triangle-exclamation me-1"></i> {{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+                
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-circle-check me-1"></i> Submit Payment</button>
+                    <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
